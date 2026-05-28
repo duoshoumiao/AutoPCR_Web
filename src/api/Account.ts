@@ -109,6 +109,13 @@ export async function putAccountConfigs(alias: string, configs: Record<string, C
   return response.data;
 }
 
+export async function putAccountModuleOrder(alias: string, area: string, order: string[]) {  
+  const response = await API.put<DefaultResponse>(`/account/${alias}/${area}/order`, {  
+    order: order  
+  });  
+  return response.data;  
+}
+
 export async function postAccountAreaDaily(alias: string) {
   const response = await API.post<AccountInfo>(`/account/${alias}/do_daily`, {}, {
     timeout: 10 * 60 * 1000,

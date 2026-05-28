@@ -1,5 +1,6 @@
 import { Box, Flex, IconButton, Popover, Stack, useDisclosure } from '@chakra-ui/react';
 import { useEffect, useState } from 'react'
+import { FiCompass, FiGripVertical } from 'react-icons/fi';
 
 import { FiCompass } from 'react-icons/fi';
 import Module from "./Module"
@@ -7,6 +8,8 @@ import { ModuleResponse } from '@interfaces/Module';
 import { Skeleton } from '../../components/ui/skeleton';
 import Toc from "./Toc"
 import { getAccountConfig } from '@api/Account'
+import { putAccountModuleOrder } from '@api/Account';  
+import { toaster } from '../../components/ui/toaster';
 import { keyframes } from '@emotion/react'
 
 interface AreaProps {
@@ -22,7 +25,9 @@ export interface TocItem {
 export default function Area({ alias, keys: key }: AreaProps) {
 
     const [config, setConfig] = useState<ModuleResponse | null>(null);
-    const { open, onOpen, onClose } = useDisclosure()
+    const [draggedModule, setDraggedModule] = useState<string | null>(null);  
+    const [moduleOrder, setModuleOrder] = useState<string[]>([]);
+	const { open, onOpen, onClose } = useDisclosure()
 
     useEffect(() => {
         if (alias && key) {
@@ -34,7 +39,22 @@ export default function Area({ alias, keys: key }: AreaProps) {
         }
     }, [alias, key]);
 
-    const tocList: TocItem[] = [];
+    useEffect(() => {  
+        if (config?.order) {  
+            setModuleOrder(config.order);  
+        }  
+    }, [config]);
+	
+	const saveModuleOrder = async () => {  
+        try {  
+            await putAccountModuleOrder(alias, key, moduleOrder);  
+            toaster.create({ type: 'success', title: '保存成功', description: '模块顺序已更新' });  
+        } catch (err) {  
+            toaster.create({ type: 'error', title: '保存失败', description: '网络错误' });  
+        }  
+    };
+	
+	const tocList: TocItem[] = [];
     config?.order.map((module) => {
         tocList.push({ name: config.info[module].name, id: module })
     })
@@ -44,7 +64,40 @@ export default function Area({ alias, keys: key }: AreaProps) {
       to { opacity: 1; transform: translateY(0); }
     `
 
-    return (
+    const moveModule = (fromIndex: number, toIndex: number) => {  
+        if (fromIndex === toIndex) return;  
+  
+        const newOrder = [...moduleOrder];  
+        const [movedModule] = newOrder.splice(fromIndex, 1);  
+        newOrder.splice(toIndex, 0, movedModule);  
+  
+        setModuleOrder(newOrder);  
+    };  
+  
+    const handleDragStart = (moduleId: string) => {  
+        setDraggedModule(moduleId);  
+    };  
+  
+    const handleDragEnd = () => {  
+        setDraggedModule(null);  
+        saveModuleOrder();  
+    }; 
+  
+    const handleDragOver = (e: React.DragEvent) => {  
+        e.preventDefault();  
+    };  
+  
+    const handleDrop = (e: React.DragEvent, targetIndex: number) => {  
+        e.preventDefault();  
+        if (draggedModule === null) return;  
+  
+        const sourceIndex = moduleOrder.indexOf(draggedModule);  
+        if (sourceIndex !== -1) {  
+            moveModule(sourceIndex, targetIndex);  
+        }  
+    };
+	
+	return (
         <Box animation={`${fade} 0.5s ease-out`} pb={20}>
             <Stack gap={4}>
                 {!config ? (
@@ -58,10 +111,24 @@ export default function Area({ alias, keys: key }: AreaProps) {
                         </Box>
                     ))
                 ) : (
-                    config?.order.map((module) => (
-                        <Module key={module} id={module} alias={alias} config={config?.config} info={(config.info[module])} isOpen={open} onOpen={onOpen} onClose={onClose} />
+                    moduleOrder.map((module) => (  
+                        <Module   
+                            key={module}   
+                            id={module}   
+                            alias={alias}   
+                            config={config?.config}   
+                            info={(config.info[module])}   
+                            isOpen={open}   
+                            onOpen={onOpen}   
+                            onClose={onClose}  
+                            isDraggable={true}  
+                            onDragStart={() => handleDragStart(module)}  
+                            onDragEnd={handleDragEnd}  
+                            onDragOver={handleDragOver}  
+                            onDrop={(e) => handleDrop(e, moduleOrder.indexOf(module))}  
+                            isDragging={draggedModule === module}  
+                        />  
                     ))
-                )}
             </Stack>
 
             {/* Floating TOC Button */}

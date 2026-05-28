@@ -3,6 +3,7 @@ import * as React from 'react';
 import { Box, Button, Card, Flex, HStack, Heading, Separator, Stack, Tag, useDisclosure } from '@chakra-ui/react'
 import { ConfigValue, ModuleInfo } from '@interfaces/Module';
 import { FiChevronDown } from 'react-icons/fi';
+import { FiGripVertical } from 'react-icons/fi';
 import { getAccountAreaSingleResultList, postAccountAreaSingle, putAccountConfig } from '@api/Account';
 
 import { AxiosError } from 'axios';
@@ -12,16 +13,22 @@ import NiceModal from '@ebay/nice-modal-react';
 import ResultInfoModal from './ResultInfoModal';
 import { toaster } from '../../components/ui/toaster';
 
-interface ModuleProps extends React.ComponentProps<typeof Card.Root> {
-    alias: string,
-    config: Record<string, ConfigValue>,
-    info: ModuleInfo
-    isOpen: boolean,
-    onOpen: () => void,
-    onClose: () => void
+interface ModuleProps extends React.ComponentProps<typeof Card.Root> {  
+    alias: string,  
+    config: Record<string, ConfigValue>,  
+    info: ModuleInfo  
+    isOpen: boolean,  
+    onOpen: () => void,  
+    onClose: () => void,  
+    isDraggable?: boolean,  
+    onDragStart?: () => void,  
+    onDragEnd?: () => void,  
+    onDragOver?: (e: React.DragEvent) => void,  
+    onDrop?: (e: React.DragEvent) => void,  
+    isDragging?: boolean  
 }
 
-export default function Module({ alias, config, info, isOpen, onOpen, onClose, ...rest }: ModuleProps) {
+export default function Module({ alias, config, info, isOpen, onOpen, onClose, isDraggable = false, onDragStart, onDragEnd, onDragOver, onDrop, isDragging = false, ...rest }: ModuleProps) {
     const { open: isExpanded, onToggle: onToggleExpand } = useDisclosure({ defaultOpen: false });
 
     const onCheckedChange = (details: { checked: boolean | "indeterminate" }) => {
@@ -64,19 +71,30 @@ export default function Module({ alias, config, info, isOpen, onOpen, onClose, .
     }
 
     return (
-        <Card.Root 
-            colorPalette="brand" 
-            bg="bg.panel" 
-            borderRadius="2xl" 
-            shadow="sm" 
-            borderWidth="1px"
-            borderColor="border.subtle"
-            transition="all 0.2s"
-            _hover={{ shadow: 'md', borderColor: "blue.400" }}
-            {...rest} 
+        <Card.Root   
+            colorPalette="brand"   
+            bg="bg.panel"   
+            borderRadius="2xl"   
+            shadow="sm"   
+            borderWidth="1px"  
+            borderColor="border.subtle"  
+            transition="all 0.2s"  
+            _hover={{ shadow: 'md', borderColor: "blue.400" }}  
+            draggable={isDraggable}  
+            onDragStart={onDragStart}  
+            onDragEnd={onDragEnd}  
+            onDragOver={onDragOver}  
+            onDrop={onDrop}  
+            opacity={isDragging ? 0.5 : 1}  
+            {...rest}   
         >
-            <Card.Header py={3} cursor="pointer" onClick={onToggleExpand}>
-                <Flex align="center">
+            <Card.Header py={3} cursor={isDraggable ? "grab" : "pointer"} onClick={onToggleExpand}>
+                <Flex align="center">  
+                    {isDraggable && (  
+                        <Box mr={2} color="fg.muted" cursor="grab" _active={{ cursor: "grabbing" }}>  
+                            <FiGripVertical />  
+                        </Box>  
+                    )}  
                     <Box onClick={(e) => e.stopPropagation()} mr={3}>
                          <Checkbox 
                             defaultChecked={!!config[info.key]} 

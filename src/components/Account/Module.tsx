@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Box, Button, Card, Flex, HStack, Heading, Separator, Stack, Tag, useDisclosure } from '@chakra-ui/react'
 import { ConfigValue, ModuleInfo } from '@interfaces/Module';
 import { FiChevronDown } from 'react-icons/fi';
-import { FiGripVertical } from 'react-icons/fi';
+import { FiMenu } from 'react-icons/fi';
 import { getAccountAreaSingleResultList, postAccountAreaSingle, putAccountConfig } from '@api/Account';
 
 import { AxiosError } from 'axios';
@@ -92,7 +92,7 @@ export default function Module({ alias, config, info, isOpen, onOpen, onClose, i
                 <Flex align="center">  
                     {isDraggable && (  
                         <Box mr={2} color="fg.muted" cursor="grab" _active={{ cursor: "grabbing" }}>  
-                            <FiGripVertical />  
+                            <FiMenu />  
                         </Box>  
                     )}  
                     <Box onClick={(e) => e.stopPropagation()} mr={3}>

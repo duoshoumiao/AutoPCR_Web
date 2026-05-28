@@ -1,7 +1,7 @@
 import { Box, Flex, IconButton, Popover, Stack, useDisclosure } from '@chakra-ui/react';  
 import { useEffect, useState } from 'react'  
   
-import { FiCompass, FiGripVertical } from 'react-icons/fi';  
+import { FiCompass, FiMenu } from 'react-icons/fi';
 import Module from "./Module"  
 import { ModuleResponse } from '@interfaces/Module';  
 import { Skeleton } from '../../components/ui/skeleton';  
